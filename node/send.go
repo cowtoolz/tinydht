@@ -15,8 +15,12 @@ func (c *Client) Broadcast() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	errs := []error{}
-	//for pStr, p := range c.peers {
-	for _, p := range c.peers {
+
+	needsPruned := make(map[string]bool)
+	for pStr, p := range c.peers {
+		if _, ok := needsPruned[pStr]; ok {
+			continue
+		}
 		err := c.sendKEYS(&p.addr)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error while sending keys: %s", err))
@@ -30,9 +34,9 @@ func (c *Client) Broadcast() error {
 				c.table[k] = nil
 				continue
 			}
-			//			if p.lastseen.Before(time.Now().Add(-time.Minute)) {
-			//				c.peers[pStr] = nil
-			//		}
+			if p.lastseen.Before(time.Now().Add(-time.Minute)) {
+				needsPruned[pStr] = true
+			}
 			if !p.peerkeys[k] {
 				err = c.sendVALUE(&p.addr, v)
 				if err != nil {
@@ -41,6 +45,12 @@ func (c *Client) Broadcast() error {
 			}
 		}
 	}
+
+	// Prune peers that have timed out
+	for k := range needsPruned {
+		c.peers[k] = nil
+	}
+
 	return errors.Join(errs...)
 
 }
