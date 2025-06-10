@@ -16,18 +16,16 @@ func (c *Client) ReceiveCommand() error {
 	errs := []error{}
 
 	var buf [2048]byte
-	_, from, err := c.listener.ReadFromUDP(buf[:])
+	n, from, err := c.listener.ReadFromUDP(buf[:])
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("RECEIVING:", from.String())
 
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
 	cmd := buf[0]
-	payload := buf[1:]
+	payload := buf[1:n]
 
 	switch cmd {
 	case dht.HELLO:
@@ -66,7 +64,7 @@ func (c *Client) ReceiveCommand() error {
 		JSONKeys := [][64]byte{}
 		err = json.Unmarshal(payload, &JSONKeys)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("failed to unmarshall key data: %v", err))
 			break
 		}
 		for _, k := range JSONKeys {
@@ -81,7 +79,7 @@ func (c *Client) ReceiveCommand() error {
 		}
 		v, err := DeserializeValue(payload)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("failed to deserialize value: %v", err))
 			break
 		}
 		c.table[v.Hash] = &v

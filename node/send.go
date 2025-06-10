@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 	"time"
 
@@ -18,11 +19,11 @@ func (c *Client) Broadcast() error {
 	for _, p := range c.peers {
 		err := c.sendKEYS(&p.addr)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("error while sending keys: %s", err))
 		}
 		err = c.sendPEERS(&p.addr)
 		if err != nil {
-			errs = append(errs, err)
+			errs = append(errs, fmt.Errorf("error while sending peers: %s", err))
 		}
 		for k, v := range c.table {
 			if v.Expires.Before(time.Now()) {
@@ -35,7 +36,7 @@ func (c *Client) Broadcast() error {
 			if !p.peerkeys[k] {
 				err = c.sendVALUE(&p.addr, v)
 				if err != nil {
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("error while sending value: %s", err))
 				}
 			}
 		}
