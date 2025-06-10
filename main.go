@@ -10,7 +10,15 @@ import (
 )
 
 func main() {
-	c, err := node.Start()
+
+	c := &node.Client{}
+	err := *new(error)
+	if len(os.Args) > 1 {
+		c, err = node.Start(&node.ROOT)
+	} else {
+		c, err = node.Start(nil)
+	}
+
 	if err != nil {
 		panic(fmt.Errorf("failed to start client: %v\n", err))
 	}
