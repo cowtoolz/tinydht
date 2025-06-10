@@ -45,14 +45,14 @@ func (c *Client) Broadcast() error {
 }
 
 func (c *Client) sendCommand(p *net.UDPAddr, cmd dht.Command, payload []byte) error {
+	var data []byte
 	if payload == nil {
-		_, err := c.listener.WriteToUDP([]byte{cmd}, p)
-		return err
+		data = []byte{cmd}
 	} else {
-		joinedPayload := append([]byte{cmd}, payload...)
-		_, err := c.listener.WriteToUDP(joinedPayload, p)
-		return err
+		data = append([]byte{cmd}, payload...)
 	}
+	_, err := c.listener.WriteToUDP(data, p)
+	return err
 }
 
 func (c *Client) sendHELLO(p *net.UDPAddr) error {
