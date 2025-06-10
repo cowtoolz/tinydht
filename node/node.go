@@ -63,6 +63,7 @@ func Start() (c *Client, err error) {
 func (c *Client) Close() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
+	c.Closed <- true
 
 	// we can't return early because we have resources to clean up
 	// so, we'll add any errors to a slice and join them at the end
@@ -81,8 +82,6 @@ func (c *Client) Close() error {
 	c.peers = nil
 	c.table = nil
 	c.listener = nil
-
-	c.Closed <- true
 
 	return errors.Join(errs...)
 }
