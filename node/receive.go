@@ -21,6 +21,8 @@ func (c *Client) ReceiveCommand() error {
 		return err
 	}
 
+	fmt.Println("RECEIVING:", from.String())
+
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 

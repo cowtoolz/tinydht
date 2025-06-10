@@ -44,32 +44,23 @@ func (c *Client) Broadcast() error {
 
 }
 
-func sendCommand(p *net.UDPAddr, cmd dht.Command, payload []byte) error {
-	conn, err := net.DialUDP("udp", nil, p)
-	if err != nil {
-		return err
-	}
+func (c *Client) sendCommand(p *net.UDPAddr, cmd dht.Command, payload []byte) error {
 	if payload == nil {
-		_, err := conn.Write([]byte{cmd})
-		if err != nil {
-			return err
-		}
+		_, err := c.listener.WriteToUDP([]byte{cmd}, p)
+		return err
 	} else {
 		joinedPayload := append([]byte{cmd}, payload...)
-		_, err := conn.Write(joinedPayload)
-		if err != nil {
-			return err
-		}
+		_, err := c.listener.WriteToUDP(joinedPayload, p)
+		return err
 	}
-	return conn.Close()
 }
 
 func (c *Client) sendHELLO(p *net.UDPAddr) error {
-	return sendCommand(p, dht.HELLO, nil)
+	return c.sendCommand(p, dht.HELLO, nil)
 }
 
 func (c *Client) sendGOODBYE(p *net.UDPAddr) error {
-	return sendCommand(p, dht.GOODBYE, nil)
+	return c.sendCommand(p, dht.GOODBYE, nil)
 }
 
 func (c *Client) sendPEERS(p *net.UDPAddr) error {
@@ -81,7 +72,7 @@ func (c *Client) sendPEERS(p *net.UDPAddr) error {
 	if err != nil {
 		return err
 	}
-	return sendCommand(p, dht.PEERS, peersJSON)
+	return c.sendCommand(p, dht.PEERS, peersJSON)
 }
 
 func (c *Client) sendKEYS(p *net.UDPAddr) error {
@@ -93,11 +84,11 @@ func (c *Client) sendKEYS(p *net.UDPAddr) error {
 	if err != nil {
 		return err
 	}
-	return sendCommand(p, dht.KEYS, keysJSON)
+	return c.sendCommand(p, dht.KEYS, keysJSON)
 }
 
 func (c *Client) sendVALUE(p *net.UDPAddr, payload *dht.Value) error {
-	return sendCommand(p, dht.VALUE, serialize(*payload))
+	return c.sendCommand(p, dht.VALUE, serialize(*payload))
 }
 
 // Takes a value and serializes it for sharing
