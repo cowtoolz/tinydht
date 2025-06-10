@@ -14,7 +14,8 @@ func (c *Client) Broadcast() error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	errs := []error{}
-	for pStr, p := range c.peers {
+	//for pStr, p := range c.peers {
+	for _, p := range c.peers {
 		err := c.sendKEYS(&p.addr)
 		if err != nil {
 			errs = append(errs, err)
@@ -28,9 +29,9 @@ func (c *Client) Broadcast() error {
 				c.table[k] = nil
 				continue
 			}
-			if p.lastseen.Before(time.Now().Add(-time.Minute)) {
-				c.peers[pStr] = nil
-			}
+			//			if p.lastseen.Before(time.Now().Add(-time.Minute)) {
+			//				c.peers[pStr] = nil
+			//		}
 			if !p.peerkeys[k] {
 				err = c.sendVALUE(&p.addr, v)
 				if err != nil {

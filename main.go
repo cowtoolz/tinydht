@@ -24,7 +24,6 @@ func main() {
 	// exports the current state to json, viewable in the browser
 	go func() {
 		for {
-			time.Sleep(5 * time.Second)
 			jsonClient, err := c.DebugJSON()
 			if err != nil {
 				panic(fmt.Errorf("error while exporting to JSON: %v", err))
@@ -53,7 +52,7 @@ func main() {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "WARN: while receiving command: %v\n", err)
 			}
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 1)
 		}
 	}()
 
