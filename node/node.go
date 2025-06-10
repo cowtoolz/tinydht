@@ -24,12 +24,18 @@ type Client struct {
 	Closed chan bool
 }
 
+var ROOT_ADDR = net.UDPAddr{
+	IP:   net.ParseIP("75.139.146.177"),
+	Port: 6232,
+}
+
 // Bootstraps the client and begins peering with the root node
 func Start() (c *Client, err error) {
 	// Stand up listener
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: 6232,
 	})
+	// This is sort of hacky, but allows any node to stand itself up as the root
 	if err != nil {
 		conn, err = net.ListenUDP("udp", nil)
 		if err != nil {
@@ -43,16 +49,12 @@ func Start() (c *Client, err error) {
 	}
 
 	// Begin peering with the hardcoded root node
-	root := net.UDPAddr{
-		IP:   net.ParseIP("75.139.146.177"),
-		Port: 6232,
-	}
 
-	err = c.sendHELLO(&root)
+	err = c.sendHELLO(&ROOT_ADDR)
 	if err != nil {
 		return c, err
 	}
-	c.addPeerUnchecked(&root)
+	c.addPeerUnchecked(&ROOT_ADDR)
 
 	return c, nil
 }

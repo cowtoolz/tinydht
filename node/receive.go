@@ -68,8 +68,9 @@ func (c *Client) ReceiveCommand() error {
 			errs = append(errs, fmt.Errorf("failed to unmarshall key data: %v", err))
 			break
 		}
-		for _, k := range JSONKeys {
-			if _, ok := c.peers[from.String()].peerkeys[k]; !ok {
+		if len(JSONKeys) != len(c.peers[from.String()].peerkeys) {
+			c.peers[from.String()].peerkeys = make(map[dht.Key]bool, len(JSONKeys))
+			for _, k := range JSONKeys {
 				c.peers[from.String()].peerkeys[k] = true
 			}
 		}
