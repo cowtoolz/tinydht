@@ -30,7 +30,8 @@ func (c *Client) ReceiveCommand() error {
 	switch cmd {
 	case dht.HELLO:
 		if c.peerKnown(from) {
-			errs = append(errs, fmt.Errorf("HELLO recieved from known peer %s", from.String()))
+			errs = append(errs, fmt.Errorf("HELLO recieved from known peer %s, resetting their keys", from.String()))
+			c.peers[from.String()].peerkeys = make(map[dht.Key]bool)
 			break
 		}
 		c.addPeerUnchecked(from)
