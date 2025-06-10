@@ -1,6 +1,7 @@
 package node
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cowtools/tinydht/dht"
+	"golang.org/x/crypto/blake2b"
 )
 
 func (c *Client) ReceiveCommand() error {
@@ -75,7 +77,7 @@ func (c *Client) ReceiveCommand() error {
 			errs = append(errs, fmt.Errorf("VALUE recieved from unknown peer %s, adding this peer", from.String()))
 			c.addPeerUnchecked(from)
 		}
-		v, err := dht.DeserializeValue(payload)
+		v, err := DeserializeValue(payload)
 		if err != nil {
 			errs = append(errs, err)
 			break
@@ -99,4 +101,20 @@ func (c *Client) peerKnown(from *net.UDPAddr) bool {
 
 func (c *Client) addPeerUnchecked(from *net.UDPAddr) {
 	c.peers[from.String()] = &Peer{*from, make(map[dht.Key]bool), time.Now()}
+}
+
+func DeserializeValue(serialized []byte) (v dht.Value, err error) {
+	v.Expires = time.Unix(int64(binary.BigEndian.Uint64(serialized)), 0)
+	payloadSize := binary.BigEndian.Uint64(serialized[8:])
+	if n := copy(v.Hash[:], serialized[16:]); n != 64 {
+		return v, fmt.Errorf("hash of deserialized value not big enough, got %d", n)
+	}
+	v.Payload = serialized[16+64:]
+	if len(v.Payload) != int(payloadSize) {
+		return v, fmt.Errorf("noted payload size and actual length of payload differ: actual length is %d, serialized as %d", len(v.Payload), int(payloadSize))
+	}
+	if blake2b.Sum512(v.Payload) != v.Hash {
+		return v, fmt.Errorf("hash mismatch for deserialized payload!")
+	}
+	return v, nil
 }

@@ -1,5 +1,15 @@
 package dht
 
+import "time"
+
+type Key = [64]byte
+
+type Value struct {
+	Hash    Key
+	Expires time.Time
+	Payload []byte
+}
+
 type Command = uint8
 
 const (

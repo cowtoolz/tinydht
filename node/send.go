@@ -1,6 +1,7 @@
 package node
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"net"
@@ -95,5 +96,14 @@ func (c *Client) sendKEYS(p *net.UDPAddr) error {
 }
 
 func (c *Client) sendVALUE(p *net.UDPAddr, payload *dht.Value) error {
-	return sendCommand(p, dht.VALUE, payload.Serialize())
+	return sendCommand(p, dht.VALUE, serialize(*payload))
+}
+
+// Takes a value and serializes it for sharing
+func serialize(v dht.Value) (serialized []byte) {
+	serialized = binary.BigEndian.AppendUint64(serialized, uint64(v.Expires.Unix()))
+	serialized = binary.BigEndian.AppendUint64(serialized, uint64(len(v.Payload)))
+	serialized = append(serialized, v.Hash[:]...)
+	serialized = append(serialized, v.Payload...)
+	return serialized
 }

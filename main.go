@@ -69,5 +69,5 @@ func main() {
 		}
 	}()
 
-	<-make(chan any)
+	<-c.Closed
 }
