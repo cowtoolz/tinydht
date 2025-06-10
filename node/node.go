@@ -27,9 +27,14 @@ type Client struct {
 // Bootstraps the client and begins peering with the root node
 func Start() (c *Client, err error) {
 	// Stand up listener
-	conn, err := net.ListenUDP("udp", nil)
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{
+		Port: 6232,
+	})
 	if err != nil {
-		return c, err
+		conn, err = net.ListenUDP("udp", nil)
+		if err != nil {
+			return c, err
+		}
 	}
 	c = &Client{
 		peers:    make(map[string]*Peer),
