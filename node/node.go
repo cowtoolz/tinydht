@@ -39,7 +39,7 @@ func Start() (c *Client, err error) {
 
 	// Begin peering with the hardcoded root node
 	root := net.UDPAddr{
-		IP:   net.ParseIP("192.168.1.1"),
+		IP:   net.ParseIP("75.139.146.177:6232"),
 		Port: 9092,
 	}
 

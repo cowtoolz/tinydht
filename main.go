@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"time"
@@ -58,14 +59,16 @@ func main() {
 
 	// take user input to add to the DHT
 	go func() {
+		scanner := bufio.NewScanner(os.Stdin)
 		for {
-			var input string
 			fmt.Print("Type something to add it to the DHT: ")
-			_, err := fmt.Scanln(&input)
-			if err != nil {
+			if scanner.Scan() {
+				input := scanner.Text()
+				c.DebugAddToDHT(input)
+			}
+			if err := scanner.Err(); err != nil {
 				panic(fmt.Errorf("error while reading user input: %v", err))
 			}
-			c.DebugAddToDHT(input)
 		}
 	}()
 
