@@ -24,15 +24,10 @@ type Client struct {
 	Closed chan bool
 }
 
-var ROOT = net.UDPAddr{
-	IP:   net.ParseIP("75.139.146.177"),
-	Port: 6232,
-}
-
 // Bootstraps the client and begins peering with the root node
-func Start(root *net.UDPAddr) (c *Client, err error) {
+func Start() (c *Client, err error) {
 	// Stand up listener
-	conn, err := net.ListenUDP("udp", root)
+	conn, err := net.ListenUDP("udp", nil)
 	if err != nil {
 		return c, err
 	}
@@ -40,16 +35,19 @@ func Start(root *net.UDPAddr) (c *Client, err error) {
 		peers:    make(map[string]*Peer),
 		table:    make(map[dht.Key]*dht.Value),
 		listener: conn,
-		Closed:   make(chan bool),
 	}
 
 	// Begin peering with the hardcoded root node
+	root := net.UDPAddr{
+		IP:   net.ParseIP("75.139.146.177"),
+		Port: 6232,
+	}
 
-	err = c.sendHELLO(&ROOT)
+	err = c.sendHELLO(&root)
 	if err != nil {
 		return c, err
 	}
-	c.addPeerUnchecked(&ROOT)
+	c.addPeerUnchecked(&root)
 
 	return c, nil
 }
